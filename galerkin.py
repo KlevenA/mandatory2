@@ -78,7 +78,7 @@ class FunctionSpace:
     def eval_derivative_basis_function_all(self, Xj, k=1):
         P = np.zeros((len(Xj), self.N + 1))
         for j in range(self.N + 1):
-            P[:, j] = self.evaluate_defivative_basis_function(Xj, j, k)
+            P[:, j] = self.evaluate_derivative_basis_function(Xj, j, k) # typ: defivative not derivative 
         return P
 
     def inner_product(self, u):
@@ -158,7 +158,7 @@ class Chebyshev(FunctionSpace):
     def L2_norm_sq(self, N):
         # L2_omega(-1,1) -> (Tj,Ti)omega = c_i*pi/2*d_ij
         # c_0 = 2, c_i = 1 for i>0
-        c = np.ones(self.N+1, dtype="int") 
+        c = np.array(np.ones([N+1])) 
         c[0] = 2
         return (c*np.pi)/2
         
@@ -357,21 +357,22 @@ class DirichletLegendre(Composite, Legendre):
         return Leg.basis(j)-Leg.basis(j+2)
 
 
-class NeumannLegendre(Composite, Legendre):
+class NeumannLegendre(Composite, Legendre):  # partially fixed error here 
     def __init__(self, N, domain=(-1, 1), bc=(0, 0), constraint=0):
         Legendre.__init__(self, N, domain=domain)
         self.B = Neumann(bc, domain, self.reference_domain)
-        # need to edit diagonals to fit neumann with "weight"
-        q = [(j(j+1))/((j+2)(j+3)) for j in range (0, N+1)]
+        # need to edit diagonals to fit neumann with j's
+        q = np.array([-(j*(j+1))/((j+2)*(j+3)) for j in range(0, N+1)])                        # added negative sign, put in some missing multipy-signs   
         self.S = sparse.diags((1, q), (0, 2), shape=(N + 1, N + 3), format="csr")
 
     def basis_function(self, j, sympy=False):
         # for Neumann boundary w/ Legendre use P_i-P_(i+2)
         # use same syntax as regular legandre, but add -(j(j+1))/((j+2)(j+3))P_(i+2)
-        q = [(j(j+1))/((j+2)(j+3)) for j in range (0, self.N+1)]
+        q = [-(j*(j+1))/((j+2)*(j+3)) for j in range(0, self.N+1)]
         if sympy:
             return sp.legendre(j, x)-q*sp.legendre(j+2, x)
         return Leg.basis(j)-q*Leg.basis(j+2)
+    
 
 
 class DirichletChebyshev(Composite, Chebyshev):
@@ -396,15 +397,16 @@ class NeumannChebyshev(Composite, Chebyshev): # litt usikker på hvilke måte so
         q2 = np.array([-(j)**2 for j in range(0, N+1)])
         
         self.S = sparse.diags((q1, q2), (0, 2), shape=(N + 1, N + 3), format="csr")
-   
+
 
     def basis_function(self, j, sympy=False):
         q1 = (j+2)**2 
-        q2 = -(j)**2
+        q2 = (j)**2
         if sympy:
             return q1*sp.cos(j * sp.acos(x)) - q2*sp.cos((j + 2) * sp.acos(x))
         
         return q1*Cheb.basis(j) - q2*Cheb.basis(j + 2)
+    
 
 
 class BasisFunction:
@@ -554,11 +556,11 @@ def test_convection_diffusion():
 
 
 if __name__ == "__main__":
-    print("Test project")
-    test_project()
-    print("test  convection diffusion")
-    test_convection_diffusion()
-    print("test helmholtz")
+  #  print("Test project")
+  #  test_project()
+  #  print("test  convection diffusion")
+  #  test_convection_diffusion()
+  #  print("test helmholtz")
     test_helmholtz()
     print("all done, woohoo!")
     
