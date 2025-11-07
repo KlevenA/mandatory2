@@ -243,21 +243,23 @@ class Sines(Trigonometric):
 
 class Cosines(Trigonometric):
     # mostly same as Sines, but with some small modifications (sin-> cos etc)
+    # not as accurate as sine, not sure why, may be a shift somewhere/need to change how the steps start
+    # changing all instances of (j+1) to just j fixed accuracy, not quite sure why
     def __init__(self, N, domain=(0, 1), bc=(0, 0)):
         Trigonometric.__init__(self, N, domain=domain)
         self.B = Neumann(bc, domain, self.reference_domain)
 
     def basis_function(self, j, sympy=False):
         if sympy:
-            return sp.cos((j + 1) * sp.pi * x)
-        return lambda Xj: np.cos((j + 1) * np.pi * Xj)
+            return sp.cos(j * sp.pi * x)
+        return lambda Xj: np.cos(j * np.pi * Xj)
 
     def derivative_basis_function(self, j, k=1):
-        scale = ((j + 1) * np.pi) ** k * {0: 1, 1: -1}[(k // 2) % 2]
+        scale = (j * np.pi) ** k * {0: 1, 1: -1}[(k // 2) % 2]
         if k % 2 == 0:
-            return lambda Xj: scale * np.cos((j + 1) * np.pi * Xj)
+            return lambda Xj: scale * np.cos(j* np.pi * Xj)
         else:
-            return lambda Xj: scale * np.sin((j + 1) * np.pi * Xj)
+            return lambda Xj: scale * np.sin(j * np.pi * Xj)
 
     def L2_norm_sq(self, N):
         #
@@ -362,13 +364,13 @@ class NeumannLegendre(Composite, Legendre):  # partially fixed error here
         Legendre.__init__(self, N, domain=domain)
         self.B = Neumann(bc, domain, self.reference_domain)
         # need to edit diagonals to fit neumann with j's
-        q = np.array([-(j*(j+1))/((j+2)*(j+3)) for j in range(0, N+1)])                        # added negative sign, put in some missing multipy-signs   
+        q = np.array([-(j*(j+1))/((j+2)*(j+3)) for j in range(0, N+1)])                        
         self.S = sparse.diags((1, q), (0, 2), shape=(N + 1, N + 3), format="csr")
 
     def basis_function(self, j, sympy=False):
         # for Neumann boundary w/ Legendre use P_i-P_(i+2)
         # use same syntax as regular legandre, but add -(j(j+1))/((j+2)(j+3))P_(i+2)
-        q = [-(j*(j+1))/((j+2)*(j+3)) for j in range(0, self.N+1)]
+        q = (j*(j+1))/((j+2)*(j+3)) # just has to be factor 
         if sympy:
             return sp.legendre(j, x)-q*sp.legendre(j+2, x)
         return Leg.basis(j)-q*Leg.basis(j+2)
