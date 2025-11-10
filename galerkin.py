@@ -243,8 +243,6 @@ class Sines(Trigonometric):
 
 class Cosines(Trigonometric):
     # mostly same as Sines, but with some small modifications (sin-> cos etc)
-    # not as accurate as sine, not sure why, may be a shift somewhere/need to change how the steps start
-    # changing all instances of (j+1) to just j fixed accuracy, not quite sure why
     def __init__(self, N, domain=(0, 1), bc=(0, 0)):
         Trigonometric.__init__(self, N, domain=domain)
         self.B = Neumann(bc, domain, self.reference_domain)
@@ -359,7 +357,7 @@ class DirichletLegendre(Composite, Legendre):
         return Leg.basis(j)-Leg.basis(j+2)
 
 
-class NeumannLegendre(Composite, Legendre):  # partially fixed error here 
+class NeumannLegendre(Composite, Legendre):  
     def __init__(self, N, domain=(-1, 1), bc=(0, 0), constraint=0):
         Legendre.__init__(self, N, domain=domain)
         self.B = Neumann(bc, domain, self.reference_domain)
@@ -389,7 +387,7 @@ class DirichletChebyshev(Composite, Chebyshev):
         return Cheb.basis(j) - Cheb.basis(j + 2)
 
 
-class NeumannChebyshev(Composite, Chebyshev): # litt usikker på hvilke måte som blir rett her 
+class NeumannChebyshev(Composite, Chebyshev):
     def __init__(self, N, domain=(-1, 1), bc=(0, 0), constraint=0):
         Chebyshev.__init__(self, N, domain=domain)
         self.B = Neumann(bc, domain, self.reference_domain)
@@ -558,11 +556,11 @@ def test_convection_diffusion():
 
 
 if __name__ == "__main__":
-  #  print("Test project")
-  #  test_project()
-  #  print("test  convection diffusion")
-  #  test_convection_diffusion()
-  #  print("test helmholtz")
+    print("Test project")
+    test_project()
+    print("test  convection diffusion")
+    test_convection_diffusion()
+    print("test helmholtz")
     test_helmholtz()
     print("all done, woohoo!")
     
